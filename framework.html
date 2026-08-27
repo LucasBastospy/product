@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Framework — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+<div id="pageRoot"></div>
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('frameworks');
+  var root = document.getElementById('pageRoot');
+
+  var slug = A.qs('slug');
+  var f = D.FRAMEWORKS.filter(function (x) { return x.slug === slug; })[0];
+  if (!f) {
+    root.innerHTML = '<div class="container-wide section"><div class="empty-state"><div class="icon">🔍</div>Framework não encontrado. <a class="link" href="frameworks.html">Voltar</a></div></div>';
+    return;
+  }
+
+  function ul(items) { return '<ul>' + items.map(function (i) { return '<li>' + A.escapeHtml(i) + '</li>'; }).join('') + '</ul>'; }
+  function ol(items) { return '<ul>' + items.map(function (i, idx) { return '<li><strong>' + (idx + 1) + '.</strong> ' + A.escapeHtml(i) + '</li>'; }).join('') + '</ul>'; }
+
+  var idx = D.FRAMEWORKS.indexOf(f);
+  var next = D.FRAMEWORKS[(idx + 1) % D.FRAMEWORKS.length];
+  var studied = false;
+
+  root.innerHTML =
+    '<header class="page-header">' +
+      '<div class="container-wide">' +
+        A.breadcrumbs([{ label: 'Início', href: 'index.html' }, { label: 'Frameworks', href: 'frameworks.html' }, { label: f.name }]) +
+        '<div class="flex-between wrap">' +
+          '<div><div class="flex gap-8 mb-12"><span class="tag tag-active">' + f.category + '</span></div><h1>' + f.icon + ' ' + A.escapeHtml(f.name) + '</h1><p>' + A.escapeHtml(f.shortDesc) + '</p></div>' +
+        '</div>' +
+      '</div>' +
+    '</header>' +
+    '<section class="section">' +
+      '<div class="container-wide">' +
+        '<div class="grid" style="grid-template-columns:2.2fr 1fr;gap:40px;align-items:flex-start;">' +
+          '<div class="content-body">' +
+            '<h2>O que é</h2><p>' + A.escapeHtml(f.whatIsIt) + '</p>' +
+            '<h2>Para que serve / quando utilizar</h2><p>' + A.escapeHtml(f.whenToUse) + '</p>' +
+            '<h2>Como utilizar</h2>' + ol(f.howToUse) +
+            '<h2>Exemplo prático</h2><div class="callout">' + A.escapeHtml(f.example) + '</div>' +
+            '<div class="grid grid-2" style="margin-top:24px;">' +
+              '<div><h3>Vantagens</h3>' + ul(f.advantages) + '</div>' +
+              '<div><h3>Limitações</h3>' + ul(f.limitations) + '</div>' +
+            '</div>' +
+            '<h2>Template</h2><div class="callout" style="font-family:monospace;font-size:13.5px;">' + A.escapeHtml(f.template) + '</div>' +
+            '<div class="flex-between wrap mt-40" style="border-top:1px solid var(--ink-200);padding-top:24px;">' +
+              '<button class="btn btn-primary" id="studyBtn"></button>' +
+              '<a href="framework.html?slug=' + next.slug + '" class="btn btn-secondary">Próximo framework →</a>' +
+            '</div>' +
+          '</div>' +
+          '<div class="sidebar-card">' +
+            '<div class="card">' +
+              '<h3 style="font-size:15px;">Resumo</h3>' +
+              '<div class="kv-list">' +
+                '<div class="kv"><span>Categoria</span><span>' + f.category + '</span></div>' +
+                '<div class="kv"><span>Tipo</span><span>Framework</span></div>' +
+              '</div>' +
+              '<div class="divider"></div>' +
+              '<p class="small muted mb-0">Use este framework em conjunto com discovery contínuo para embasar decisões com evidência, não só intuição.</p>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</section>';
+
+  var btn = document.getElementById('studyBtn');
+  function paint() {
+    var list = JSON.parse(localStorage.getItem('ph_studied_frameworks') || '[]');
+    var done = list.indexOf(f.slug) !== -1;
+    btn.textContent = done ? '✓ Estudado' : 'Marcar como estudado';
+    btn.className = done ? 'btn btn-secondary' : 'btn btn-primary';
+  }
+  paint();
+  btn.addEventListener('click', function () {
+    A.markFrameworkStudied(f.slug);
+    A.toast('Framework marcado como estudado!');
+    paint();
+  });
+})();
+</script>
+</body>
+</html>

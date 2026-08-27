@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tecnologia sem ser Desenvolvedor — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><a href="carreira.html">Carreira</a><span class="sep">/</span><span class="current">Tecnologia sem ser Dev</span></div>
+    <h1>Tecnologia sem ser Desenvolvedor</h1>
+    <p>Você não precisa programar, mas precisa saber conversar sobre tecnologia com o time. O vocabulário essencial, explicado para PO/PM.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <input type="text" class="filter-select w-full" id="techSearch" placeholder="Buscar termo técnico (ex: API, cache, cloud)..." style="max-width:420px;margin-bottom:24px;">
+    <div class="grid grid-3" id="techGrid" style="gap:18px;"></div>
+  </div>
+</section>
+
+<div id="modalHost"></div>
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('carreira');
+
+  function renderGrid(q) {
+    q = (q || '').toLowerCase();
+    var list = D.TECH_TOPICS.filter(function (t) { return !q || (t.title + ' ' + t.explanation).toLowerCase().indexOf(q) !== -1; });
+    document.getElementById('techGrid').innerHTML = list.map(A.techCard).join('') ||
+      '<div class="empty-state"><div class="icon">🔍</div>Nenhum termo encontrado.</div>';
+    document.querySelectorAll('[data-tech]').forEach(function (card) {
+      card.addEventListener('click', function () { openTech(card.getAttribute('data-tech')); });
+    });
+  }
+
+  function openTech(slug) {
+    var t = D.TECH_TOPICS.filter(function (x) { return x.slug === slug; })[0];
+    if (!t) return;
+    var host = document.getElementById('modalHost');
+    host.innerHTML =
+      '<div class="modal-backdrop open" id="techModal">' +
+        '<div class="modal">' +
+          '<div class="modal-head"><h2 style="margin-bottom:0;">' + A.escapeHtml(t.title) + '</h2><button class="modal-close" data-close>&times;</button></div>' +
+          '<div class="modal-body content-body">' +
+            '<p>' + A.escapeHtml(t.explanation) + '</p>' +
+            '<div class="callout">👤 <strong>Para PO/PM:</strong> ' + A.escapeHtml(t.poAngle) + '</div>' +
+            '<h3>Exemplo</h3><p>' + A.escapeHtml(t.example) + '</p>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('techModal').addEventListener('click', function (e) {
+      if (e.target.id === 'techModal' || e.target.closest('[data-close]')) host.innerHTML = '';
+    });
+  }
+
+  document.getElementById('techSearch').addEventListener('input', function (e) { renderGrid(e.target.value); });
+  renderGrid('');
+
+  var preset = A.qs('tech');
+  if (preset) openTech(preset);
+})();
+</script>
+</body>
+</html>

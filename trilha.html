@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<div id="pageRoot"></div>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('trilhas');
+  var root = document.getElementById('pageRoot');
+
+  var slug = A.qs('slug');
+  var track = D.TRACKS.filter(function (t) { return t.slug === slug; })[0];
+
+  if (!track) {
+    root.innerHTML = '<div class="container-wide section"><div class="empty-state"><div class="icon">🔍</div>Trilha não encontrada. <a class="link" href="trilhas.html">Voltar para trilhas</a></div></div>';
+    return;
+  }
+
+  var acc = A.checkAccess(track.access);
+  var pct = A.trackProgress(track);
+  var completed = A.getCompleted();
+
+  root.innerHTML =
+    '<header class="page-header">' +
+      '<div class="container-wide">' +
+        A.breadcrumbs([{ label: 'Início', href: 'index.html' }, { label: 'Trilhas', href: 'trilhas.html' }, { label: track.title }]) +
+        '<div class="flex-between wrap">' +
+          '<div>' +
+            '<div class="flex gap-8 mb-12">' + A.levelBadge(track.level) + A.accessBadge(track.access) + '</div>' +
+            '<h1>' + track.icon + ' ' + A.escapeHtml(track.title) + '</h1>' +
+            '<p>' + A.escapeHtml(track.description) + '</p>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</header>' +
+    '<section class="section">' +
+      '<div class="container-wide">' +
+        '<div class="grid" style="grid-template-columns:2fr 1fr;gap:32px;align-items:flex-start;">' +
+          '<div>' +
+            (acc.allowed ? '' :
+              '<div class="banner ' + (acc.reason === 'premium' ? 'banner-warning' : 'banner-brand') + '" style="margin-bottom:28px;">' +
+                '<div><h3 style="' + (acc.reason === 'premium' ? '' : 'color:#fff;') + 'margin-bottom:6px;">' +
+                  (acc.reason === 'premium' ? '🔒 Trilha Premium' : '🔑 Este conteúdo é gratuito, mas requer cadastro') + '</h3>' +
+                '<p style="' + (acc.reason === 'premium' ? '' : 'color:var(--brand-100);') + 'margin:0;">' +
+                  (acc.reason === 'premium' ? 'Crie sua conta e faça upgrade para desbloquear a trilha completa.' : 'Crie sua conta gratuitamente para acompanhar essa trilha e seu progresso.') + '</p></div>' +
+                (acc.reason === 'premium' ? '<a href="premium.html" class="btn btn-dark">Desbloquear conteúdo</a>' : '<a href="cadastro.html?next=trilha.html%3Fslug%3D' + track.slug + '" class="btn btn-dark">Criar conta grátis</a>') +
+              '</div>'
+            ) +
+            '<h2 style="font-size:19px;margin-bottom:16px;">Módulos da trilha</h2>' +
+            '<div class="timeline" id="moduleList"></div>' +
+          '</div>' +
+          '<div class="sidebar-card">' +
+            '<div class="card">' +
+              (acc.allowed ?
+                ('<div class="progress-row"><span>Seu progresso</span><span>' + pct + '%</span></div>' + A.progressBarHtml(pct)) :
+                '<p class="small muted mb-0">Desbloqueie a trilha para acompanhar seu progresso.</p>') +
+              '<div class="divider"></div>' +
+              '<div class="kv-list">' +
+                '<div class="kv"><span>Nível</span><span>' + D.LEVELS[track.level].label + '</span></div>' +
+                '<div class="kv"><span>Conteúdos</span><span>' + track.modules.length + '</span></div>' +
+                '<div class="kv"><span>Status</span><span>' + track.status + '</span></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</section>';
+
+  var moduleHtml = track.modules.map(function (m, i) {
+    var content = D.CONTENTS.filter(function (c) { return c.slug === m.contentSlug; })[0];
+    var isDone = completed.indexOf(m.contentSlug) !== -1;
+    var num = (i + 1) + '.';
+
+    if (content) {
+      var cAcc = A.checkAccess(content.access);
+      if (cAcc.allowed) {
+        return '<div class="timeline-item">' +
+          '<a href="conteudo.html?slug=' + content.slug + '" class="flex-between" style="text-decoration:none;">' +
+            '<div><span class="muted small">' + num + '</span> <strong style="color:var(--ink-900);">' + A.escapeHtml(m.title) + '</strong>' +
+              (isDone ? ' ' + A.statusBadge(content.slug) : '') + '</div>' +
+            '<span class="small link">Abrir →</span>' +
+          '</a></div>';
+      }
+      return '<div class="timeline-item">' +
+        '<div class="flex-between" style="cursor:pointer;opacity:.7;" data-gate="' + (cAcc.reason) + '" data-msg="' + (cAcc.reason === 'premium' ? 'Este módulo é Premium.' : 'Crie sua conta para acessar este módulo.') + '">' +
+          '<div><span class="muted small">' + num + '</span> <strong>' + A.escapeHtml(m.title) + '</strong></div>' +
+          '<span class="lock-badge">🔒 ' + (cAcc.reason === 'premium' ? 'Premium' : 'Cadastro') + '</span>' +
+        '</div></div>';
+    }
+
+    // stub module (sem conteúdo ainda) — sempre premium/em breve
+    return '<div class="timeline-item">' +
+      '<div class="flex-between" style="cursor:pointer;opacity:.6;" data-gate="premium" data-msg="Este módulo faz parte do conteúdo Premium, em breve disponível.">' +
+        '<div><span class="muted small">' + num + '</span> <strong>' + A.escapeHtml(m.title) + '</strong></div>' +
+        '<span class="lock-badge">🔒 Em breve</span>' +
+      '</div></div>';
+  }).join('');
+  document.getElementById('moduleList').innerHTML = moduleHtml;
+
+  document.querySelectorAll('[data-gate]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var reason = el.getAttribute('data-gate');
+      var msg = el.getAttribute('data-msg');
+      if (reason === 'premium') A.premiumGateModal(msg); else A.signupGateModal(msg, 'trilha.html?slug=' + track.slug);
+    });
+  });
+
+  if (acc.reason === 'signup') {
+    setTimeout(function () { A.signupGateModal('Esse conteúdo é gratuito, mas você precisa criar sua conta para acessar a trilha ' + track.title + '.', 'trilha.html?slug=' + track.slug); }, 400);
+  }
+})();
+</script>
+</body>
+</html>

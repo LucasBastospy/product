@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carreira — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><span class="current">Carreira</span></div>
+    <h1>Sua evolução em Produto</h1>
+    <p>Do primeiro passo à liderança: trilhas, situações reais, tecnologia para não-devs e conteúdos de carreira.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="card" style="padding:40px;">
+      <h2 style="margin-bottom:24px;">A jornada de carreira em Produto</h2>
+      <div class="path-track" id="careerTrack" style="grid-template-columns:repeat(4,1fr);"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--white);border-top:1px solid var(--ink-200);border-bottom:1px solid var(--ink-200);">
+  <div class="container-wide">
+    <div class="grid grid-3">
+      <a href="produto-real.html" class="card hoverable">
+        <div class="card-icon">🧭</div>
+        <h3 style="font-size:17px;">Produto na vida real</h3>
+        <p class="small mb-0">Situações práticas do dia a dia, com perguntas certas e exemplos de resposta.</p>
+      </a>
+      <a href="tecnologia.html" class="card hoverable">
+        <div class="card-icon">💻</div>
+        <h3 style="font-size:17px;">Tecnologia sem ser Dev</h3>
+        <p class="small mb-0">O vocabulário técnico essencial para conversar com o time com confiança.</p>
+      </a>
+      <a href="conteudos.html?categoria=Carreira" class="card hoverable">
+        <div class="card-icon">📈</div>
+        <h3 style="font-size:17px;">Conteúdos de Carreira</h3>
+        <p class="small mb-0">Entrevistas, currículo, LinkedIn, senioridade e plano de carreira.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="flex-between wrap mb-24">
+      <div class="section-head" style="margin-bottom:0;">
+        <div class="eyebrow"><span class="dot"></span>Situações reais</div>
+        <h2>Produto na vida real</h2>
+      </div>
+      <a href="produto-real.html" class="btn btn-secondary">Ver todas</a>
+    </div>
+    <div class="grid grid-3" id="situationsPreview"></div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--white);border-top:1px solid var(--ink-200);">
+  <div class="container-wide">
+    <div class="flex-between wrap mb-24">
+      <div class="section-head" style="margin-bottom:0;">
+        <div class="eyebrow"><span class="dot"></span>Conteúdos de carreira</div>
+        <h2>Entrevistas, currículo e plano de carreira</h2>
+      </div>
+      <a href="conteudos.html?categoria=Carreira" class="btn btn-secondary">Ver todos</a>
+    </div>
+    <div class="grid grid-4" id="careerContentPreview"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('carreira');
+
+  var TRACK_BY_LEVEL = { junior: 'po-junior', pleno: 'po-pm-pleno', senior: 'pm-senior', lideranca: 'lideranca-de-produto' };
+  var levelGoal = A.getLevelGoal();
+  document.getElementById('careerTrack').innerHTML = Object.keys(D.LEVELS).map(function (k) {
+    var lvl = D.LEVELS[k];
+    var isCurrent = k === levelGoal;
+    return '<a href="trilha.html?slug=' + TRACK_BY_LEVEL[k] + '" class="path-step light" style="text-decoration:none;">' +
+      '<div class="path-node lvl-node-' + k + '" style="' + (isCurrent ? 'outline:4px solid var(--brand-200);' : '') + '">' + lvl.short + '</div>' +
+      '<h4>' + lvl.label + (isCurrent ? ' <span class="badge badge-brand">Você</span>' : '') + '</h4>' +
+      '<p>' + lvl.desc + '</p>' +
+    '</a>';
+  }).join('');
+
+  document.getElementById('situationsPreview').innerHTML = D.SITUATIONS.slice(0, 3).map(A.situationCard).join('');
+  document.querySelectorAll('#situationsPreview [data-situation]').forEach(function (el) {
+    el.addEventListener('click', function () { window.location.href = 'produto-real.html?situation=' + el.getAttribute('data-situation'); });
+  });
+
+  var careerContent = D.CONTENTS.filter(function (c) { return c.category === 'Carreira'; });
+  document.getElementById('careerContentPreview').innerHTML = careerContent.map(A.contentCard).join('');
+})();
+</script>
+</body>
+</html>

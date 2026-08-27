@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cases de Produto — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><span class="current">Cases</span></div>
+    <h1>Cases de Produto</h1>
+    <p>Empresas fictícias, jornadas reais: Problema → Discovery → Hipóteses → Solução → Priorização → Desenvolvimento → Métricas → Resultado.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="grid grid-4" id="caseGrid" style="gap:20px;"></div>
+  </div>
+</section>
+
+<div id="modalHost"></div>
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('cases');
+
+  document.getElementById('caseGrid').innerHTML = D.CASES.map(A.caseCard).join('');
+  document.querySelectorAll('[data-case]').forEach(function (card) {
+    card.addEventListener('click', function () { openCase(card.getAttribute('data-case')); });
+  });
+
+  var STEPS = [
+    ['problema', '1. Problema'], ['discovery', '2. Discovery'], ['hipoteses', '3. Hipóteses'],
+    ['solucao', '4. Solução'], ['priorizacao', '5. Priorização'], ['desenvolvimento', '6. Desenvolvimento'],
+    ['metricas', '7. Métricas'], ['resultado', '8. Resultado']
+  ];
+
+  function openCase(slug) {
+    var c = D.CASES.filter(function (x) { return x.slug === slug; })[0];
+    if (!c) return;
+    var host = document.getElementById('modalHost');
+    var timeline = STEPS.map(function (s) {
+      return '<div class="timeline-item"><h4>' + s[1] + '</h4><p class="small mb-0">' + A.escapeHtml(c[s[0]]) + '</p></div>';
+    }).join('');
+    host.innerHTML =
+      '<div class="modal-backdrop open" id="caseModal">' +
+        '<div class="modal modal-wide">' +
+          '<div class="modal-head">' +
+            '<div><div class="card-icon" style="margin-bottom:10px;">' + c.icon + '</div><h2 style="margin-bottom:4px;">' + A.escapeHtml(c.company) + '</h2><span class="tag">' + A.escapeHtml(c.sector) + '</span></div>' +
+            '<button class="modal-close" data-close>&times;</button>' +
+          '</div>' +
+          '<div class="modal-body">' +
+            '<p class="muted">' + A.escapeHtml(c.summary) + '</p>' +
+            '<div class="timeline mt-24">' + timeline + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('caseModal').addEventListener('click', function (e) {
+      if (e.target.id === 'caseModal' || e.target.closest('[data-close]')) host.innerHTML = '';
+    });
+  }
+
+  var preset = A.qs('case');
+  if (preset) openCase(preset);
+})();
+</script>
+</body>
+</html>

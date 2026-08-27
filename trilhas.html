@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilhas — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><span class="current">Trilhas</span></div>
+    <h1>Trilhas de aprendizado</h1>
+    <p>Um caminho estruturado para cada momento da carreira: Júnior, Pleno, Sênior e Liderança.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="filters-bar">
+      <div class="filter-chips" id="levelFilters"></div>
+    </div>
+    <div class="grid grid-2" id="trackGrid" style="gap:24px;"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('trilhas');
+
+  var levels = ['todos'].concat(Object.keys(D.LEVELS));
+  var current = 'todos';
+
+  function renderChips() {
+    document.getElementById('levelFilters').innerHTML = levels.map(function (k) {
+      var label = k === 'todos' ? 'Todos os níveis' : D.LEVELS[k].label;
+      return '<button class="chip' + (k === current ? ' active' : '') + '" data-level="' + k + '">' + label + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-level]').forEach(function (btn) {
+      btn.addEventListener('click', function () { current = btn.getAttribute('data-level'); renderChips(); renderGrid(); });
+    });
+  }
+
+  function renderGrid() {
+    var list = D.TRACKS.filter(function (t) { return current === 'todos' || t.level === current; });
+    document.getElementById('trackGrid').innerHTML = list.map(A.trackCard).join('') ||
+      '<div class="empty-state"><div class="icon">🔍</div>Nenhuma trilha encontrada para este filtro.</div>';
+  }
+
+  renderChips();
+  renderGrid();
+})();
+</script>
+</body>
+</html>

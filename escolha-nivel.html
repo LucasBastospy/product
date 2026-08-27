@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escolha seu nível — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><span class="current">Escolha seu nível</span></div>
+    <h1>Em qual etapa da sua carreira você está?</h1>
+    <p>Escolha seu nível atual (ou o nível que você quer alcançar) para receber uma trilha e um dashboard personalizados.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="grid grid-2" id="levelGrid" style="gap:24px;"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout(null);
+
+  var TRACK_BY_LEVEL = { junior: 'po-junior', pleno: 'po-pm-pleno', senior: 'pm-senior', lideranca: 'lideranca-de-produto' };
+  var OBJECTIVES = {
+    junior: ['Entender fundamentos de Produto', 'Aprender ferramentas do dia a dia', 'Dominar as cerimônias ágeis', 'Aprender a trabalhar com squads'],
+    pleno: ['Tomada de decisão e priorização', 'Product Discovery contínuo', 'Métricas e estratégia', 'Comunicação executiva'],
+    senior: ['Estratégia de Produto em escala', 'Gestão de portfólio', 'Finanças e Business Case', 'Governança e riscos'],
+    lideranca: ['Estrutura organizacional', 'P&L e OKRs em escala', 'Cultura de Produto', 'Liderança executiva']
+  };
+
+  var preselect = A.qs('level');
+
+  var html = Object.keys(D.LEVELS).map(function (k) {
+    var lvl = D.LEVELS[k];
+    var badge = k === 'junior' ? '<span class="badge badge-success">Conteúdo aberto</span>' :
+      k === 'pleno' ? '<span class="badge badge-brand">Grátis com cadastro</span>' :
+      '<span class="badge badge-warning">Premium / Em breve</span>';
+    var items = OBJECTIVES[k].map(function (o) { return '<li class="checklist-item"><span class="box"></span>' + o + '</li>'; }).join('');
+    return (
+      '<div class="card' + (preselect === k ? '' : '') + '" style="padding:32px;' + (preselect === k ? 'border-color:var(--brand-400);box-shadow:var(--shadow-lg);' : '') + '">' +
+        '<div class="flex-between mb-16"><div class="path-node lvl-node-' + k + '" style="margin-bottom:0;">' + lvl.short + '</div>' + badge + '</div>' +
+        '<h2 style="font-size:22px;margin-bottom:8px;">' + lvl.label + '</h2>' +
+        '<p style="margin-bottom:18px;">' + lvl.desc + '</p>' +
+        '<ul class="content-body" style="margin-bottom:24px;">' + items + '</ul>' +
+        '<button class="btn btn-primary btn-block" data-select="' + k + '">Selecionar nível ' + lvl.label + '</button>' +
+      '</div>'
+    );
+  }).join('');
+  document.getElementById('levelGrid').innerHTML = html;
+
+  document.querySelectorAll('[data-select]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var level = btn.getAttribute('data-select');
+      A.setLevelGoal(level);
+      A.toast('Nível definido: ' + D.LEVELS[level].label);
+      setTimeout(function () {
+        window.location.href = 'trilha.html?slug=' + TRACK_BY_LEVEL[level];
+      }, 500);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<div id="dashboardRoot"></div>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout(null);
+  var root = document.getElementById('dashboardRoot');
+
+  var user = A.getUser();
+  if (!user) {
+    root.innerHTML =
+      '<section class="section">' +
+        '<div class="container-wide">' +
+          '<div class="banner banner-brand" style="flex-direction:column;align-items:flex-start;padding:48px;">' +
+            '<span class="badge mb-16" style="background:rgba(255,255,255,.15);color:#fff;">Área do usuário</span>' +
+            '<h2 style="color:#fff;max-width:520px;margin-top:14px;">Faça login para ver seu dashboard.</h2>' +
+            '<p style="color:var(--brand-100);max-width:520px;">Acompanhe sua trilha, seu progresso e o próximo conteúdo recomendado para você.</p>' +
+            '<div class="flex gap-12 mt-16">' +
+              '<a href="cadastro.html" class="btn btn-dark">Criar conta grátis</a>' +
+              '<a href="login.html" class="btn btn-outline-light">Entrar</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</section>';
+    return;
+  }
+
+  var TRACK_BY_LEVEL = { junior: 'po-junior', pleno: 'po-pm-pleno', senior: 'pm-senior', lideranca: 'lideranca-de-produto' };
+  var levelGoal = A.getLevelGoal();
+  var trackSlug = TRACK_BY_LEVEL[levelGoal] || 'po-junior';
+  var track = D.TRACKS.filter(function (t) { return t.slug === trackSlug; })[0] || D.TRACKS[0];
+  var pct = A.trackProgress(track);
+  var completed = A.getCompleted();
+  var nextModule = track.modules.filter(function (m) { return completed.indexOf(m.contentSlug) === -1; })[0];
+  var nextContent = nextModule ? D.CONTENTS.filter(function (c) { return c.slug === nextModule.contentSlug; })[0] : null;
+  var stats = A.studyStats();
+
+  var levelOrder = ['junior', 'pleno', 'senior'];
+
+  root.innerHTML =
+  '<section class="section-tight" style="background:var(--white);border-bottom:1px solid var(--ink-200);">' +
+    '<div class="container-wide">' +
+      '<div class="flex-between wrap">' +
+        '<div>' +
+          '<h1 style="font-size:28px;margin-bottom:4px;">Olá, ' + A.escapeHtml(user.name.split(' ')[0]) + ' 👋</h1>' +
+          '<p class="mb-0">Continue sua evolução em Produto.</p>' +
+        '</div>' +
+        '<div class="flex gap-8">' + A.levelBadge(levelGoal) + '<span class="badge badge-outline">' + A.escapeHtml(user.cargo) + '</span></div>' +
+      '</div>' +
+    '</div>' +
+  '</section>' +
+  '<section class="section">' +
+    '<div class="container-wide">' +
+      '<div class="grid grid-2 mb-24">' +
+
+        '<div class="card">' +
+          '<div class="flex-between mb-16"><span class="eyebrow" style="margin-bottom:0;"><span class="dot"></span>Minha trilha</span>' + A.levelBadge(track.level) + '</div>' +
+          '<h3 style="font-size:19px;">' + A.escapeHtml(track.title) + '</h3>' +
+          '<div class="progress-row"><span>Progresso</span><span>' + pct + '%</span></div>' +
+          A.progressBarHtml(pct) +
+          '<a href="trilha.html?slug=' + track.slug + '" class="btn btn-primary mt-24">Continuar trilha</a>' +
+        '</div>' +
+
+        '<div class="card">' +
+          '<div class="eyebrow"><span class="dot"></span>Próximo conteúdo</div>' +
+          (nextContent ?
+            ('<h3 style="font-size:19px;">' + A.escapeHtml(nextContent.title) + '</h3>' +
+             '<p class="small">' + A.escapeHtml(nextContent.summary) + '</p>' +
+             '<div class="flex gap-8 mb-16">' + A.levelBadge(nextContent.level) + A.typeBadge(nextContent.type) + '</div>' +
+             '<a href="conteudo.html?slug=' + nextContent.slug + '" class="btn btn-primary">Continuar</a>') :
+            ('<h3 style="font-size:19px;">Trilha concluída 🎉</h3><p class="small">Você concluiu todos os conteúdos desta trilha. Explore a próxima trilha para continuar evoluindo.</p><a href="trilhas.html" class="btn btn-primary">Ver trilhas</a>')
+          ) +
+        '</div>' +
+      '</div>' +
+
+      '<div class="grid grid-4 mb-24">' +
+        '<div class="stat-tile"><div class="stat-icon" style="background:var(--brand-100);color:var(--brand-700);">📘</div><b>' + stats.contentsCompleted + '</b><span>Conteúdos concluídos</span></div>' +
+        '<div class="stat-tile"><div class="stat-icon" style="background:var(--success-100);color:var(--success-700);">⏱</div><b>' + stats.hoursStudied + 'h</b><span>Horas de estudo</span></div>' +
+        '<div class="stat-tile"><div class="stat-icon" style="background:var(--lvl-senior-bg);color:#7e22ce;">🧠</div><b>' + stats.frameworksStudied + '</b><span>Frameworks estudados</span></div>' +
+        '<div class="stat-tile"><div class="stat-icon" style="background:var(--warning-100);color:var(--warning-700);">🏁</div><b>' + stats.tracksCompleted + '</b><span>Trilhas concluídas</span></div>' +
+      '</div>' +
+
+      '<div class="card">' +
+        '<div class="eyebrow"><span class="dot"></span>Evolução</div>' +
+        '<h3 style="margin-bottom:24px;">Sua jornada de carreira</h3>' +
+        '<div class="path-track" id="evoTrack" style="grid-template-columns:repeat(3,1fr);"></div>' +
+      '</div>' +
+    '</div>' +
+  '</section>';
+
+  var evo = levelOrder.map(function (k) {
+    var lvl = D.LEVELS[k];
+    var isCurrent = k === levelGoal;
+    return '<div class="path-step light">' +
+      '<div class="path-node lvl-node-' + k + '" style="' + (isCurrent ? 'outline:4px solid var(--brand-200);' : 'opacity:.55;') + '">' + lvl.short + '</div>' +
+      '<h4>' + lvl.label + (isCurrent ? ' <span class="badge badge-brand">Você está aqui</span>' : '') + '</h4>' +
+      '<p>' + lvl.desc + '</p>' +
+    '</div>';
+  }).join('');
+  document.getElementById('evoTrack').innerHTML = evo;
+})();
+</script>
+</body>
+</html>

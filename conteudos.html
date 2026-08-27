@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biblioteca de Conteúdos — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><span class="current">Conteúdos</span></div>
+    <h1>Biblioteca de conteúdos</h1>
+    <p>Produto, Gestão, Tecnologia, Negócio e Carreira — conteúdo prático, com exemplos e templates prontos.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="filters-bar">
+      <select class="filter-select" id="fLevel">
+        <option value="">Nível: todos</option>
+        <option value="junior">Júnior</option>
+        <option value="pleno">Pleno</option>
+        <option value="senior">Sênior</option>
+      </select>
+      <select class="filter-select" id="fCategory">
+        <option value="">Tema: todos</option>
+      </select>
+      <select class="filter-select" id="fType">
+        <option value="">Tipo: todos</option>
+        <option value="artigo">Artigo</option>
+        <option value="checklist">Checklist</option>
+        <option value="template">Template</option>
+        <option value="video">Vídeo</option>
+      </select>
+      <select class="filter-select" id="fAccess">
+        <option value="">Acesso: todos</option>
+        <option value="free">Gratuito</option>
+        <option value="signup">Requer cadastro</option>
+        <option value="premium">Premium</option>
+      </select>
+      <input type="text" class="filter-select" id="fSearch" placeholder="Buscar por palavra-chave..." style="min-width:220px;">
+    </div>
+    <p class="small muted" id="resultCount"></p>
+    <div class="grid grid-3" id="contentGrid" style="margin-top:12px;"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('conteudos');
+
+  var categories = Array.from(new Set(D.CONTENTS.map(function (c) { return c.category; })));
+  document.getElementById('fCategory').innerHTML += categories.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+
+  var fLevel = document.getElementById('fLevel');
+  var fCategory = document.getElementById('fCategory');
+  var fType = document.getElementById('fType');
+  var fAccess = document.getElementById('fAccess');
+  var fSearch = document.getElementById('fSearch');
+
+  var presetCategory = A.qs('categoria');
+  if (presetCategory) fCategory.value = presetCategory;
+  var presetLevel = A.qs('nivel');
+  if (presetLevel) fLevel.value = presetLevel;
+
+  function render() {
+    var list = D.CONTENTS.filter(function (c) {
+      if (fLevel.value && c.level !== fLevel.value) return false;
+      if (fCategory.value && c.category !== fCategory.value) return false;
+      if (fType.value && c.type !== fType.value) return false;
+      if (fAccess.value && c.access !== fAccess.value) return false;
+      if (fSearch.value) {
+        var q = fSearch.value.toLowerCase();
+        if ((c.title + ' ' + c.summary + ' ' + c.theme).toLowerCase().indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    document.getElementById('resultCount').textContent = list.length + ' conteúdo(s) encontrado(s)';
+    document.getElementById('contentGrid').innerHTML = list.map(A.contentCard).join('') ||
+      '<div class="empty-state"><div class="icon">🔍</div>Nenhum conteúdo encontrado com esses filtros.</div>';
+  }
+
+  [fLevel, fCategory, fType, fAccess].forEach(function (el) { el.addEventListener('change', render); });
+  fSearch.addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

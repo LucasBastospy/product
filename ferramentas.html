@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferramentas — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><span class="current">Ferramentas</span></div>
+    <h1>Ferramentas de Produto</h1>
+    <p>As ferramentas mais usadas por PO/PM no dia a dia — o que são, para que servem e quando usar.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="filters-bar">
+      <div class="filter-chips" id="catFilters"></div>
+    </div>
+    <div class="grid grid-4" id="toolGrid" style="gap:20px;"></div>
+  </div>
+</section>
+
+<div id="modalHost"></div>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('ferramentas');
+
+  var cats = ['Todas'].concat(Array.from(new Set(D.TOOLS.map(function (t) { return t.category; }))));
+  var current = 'Todas';
+
+  function renderChips() {
+    document.getElementById('catFilters').innerHTML = cats.map(function (c) {
+      return '<button class="chip' + (c === current ? ' active' : '') + '" data-cat="' + c + '">' + c + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-cat]').forEach(function (btn) {
+      btn.addEventListener('click', function () { current = btn.getAttribute('data-cat'); renderChips(); renderGrid(); });
+    });
+  }
+
+  function renderGrid() {
+    var list = D.TOOLS.filter(function (t) { return current === 'Todas' || t.category === current; });
+    document.getElementById('toolGrid').innerHTML = list.map(A.toolCard).join('');
+    document.querySelectorAll('[data-tool]').forEach(function (card) {
+      card.addEventListener('click', function () { openTool(card.getAttribute('data-tool')); });
+    });
+  }
+
+  function openTool(slug) {
+    var t = D.TOOLS.filter(function (x) { return x.slug === slug; })[0];
+    if (!t) return;
+    var host = document.getElementById('modalHost');
+    host.innerHTML =
+      '<div class="modal-backdrop open" id="toolModal">' +
+        '<div class="modal modal-wide">' +
+          '<div class="modal-head">' +
+            '<div><div class="card-icon" style="margin-bottom:10px;">' + t.icon + '</div><h2 style="margin-bottom:4px;">' + A.escapeHtml(t.name) + '</h2><span class="tag">' + t.category + '</span> ' + A.levelBadge(t.level) + '</div>' +
+            '<button class="modal-close" data-close>&times;</button>' +
+          '</div>' +
+          '<div class="modal-body content-body">' +
+            '<h2>O que é</h2><p>' + A.escapeHtml(t.whatIsIt) + '</p>' +
+            '<h2>Para que serve</h2><p>' + A.escapeHtml(t.whatFor) + '</p>' +
+            '<h2>Quando usar</h2><p>' + A.escapeHtml(t.whenToUse) + '</p>' +
+            '<h2>Tutorial rápido</h2><ul>' + t.tutorial.map(function (s) { return '<li>' + A.escapeHtml(s) + '</li>'; }).join('') + '</ul>' +
+            '<h2>Exemplos de uso</h2><ul>' + t.examples.map(function (s) { return '<li>' + A.escapeHtml(s) + '</li>'; }).join('') + '</ul>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('toolModal').addEventListener('click', function (e) {
+      if (e.target.id === 'toolModal' || e.target.closest('[data-close]')) host.innerHTML = '';
+    });
+  }
+
+  renderChips();
+  renderGrid();
+
+  var preset = A.qs('tool');
+  if (preset) openTool(preset);
+})();
+</script>
+</body>
+</html>

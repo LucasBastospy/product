@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Perfil — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+<div id="pageRoot"></div>
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout(null);
+  var root = document.getElementById('pageRoot');
+  var user = A.getUser();
+
+  if (!user) {
+    root.innerHTML =
+      '<section class="section"><div class="container-wide">' +
+        '<div class="banner banner-brand" style="flex-direction:column;align-items:flex-start;padding:48px;">' +
+          '<h2 style="color:#fff;">Faça login para ver seu perfil.</h2>' +
+          '<p style="color:var(--brand-100);">Gerencie seus dados e acompanhe seu progresso na plataforma.</p>' +
+          '<div class="flex gap-12 mt-16"><a href="cadastro.html" class="btn btn-dark">Criar conta grátis</a><a href="login.html" class="btn btn-outline-light">Entrar</a></div>' +
+        '</div>' +
+      '</div></section>';
+    return;
+  }
+
+  var stats = A.studyStats();
+  var completed = A.getCompleted();
+  var completedItems = D.CONTENTS.filter(function (c) { return completed.indexOf(c.slug) !== -1; });
+  var studiedFw = JSON.parse(localStorage.getItem('ph_studied_frameworks') || '[]');
+  var fwItems = D.FRAMEWORKS.filter(function (f) { return studiedFw.indexOf(f.slug) !== -1; });
+
+  root.innerHTML =
+    '<header class="page-header">' +
+      '<div class="container-wide">' +
+        A.breadcrumbs([{ label: 'Início', href: 'index.html' }, { label: 'Perfil' }]) +
+        '<div class="flex gap-16 items-center">' +
+          '<div class="avatar-lg">' + A.initials(user.name) + '</div>' +
+          '<div><h1 style="margin-bottom:4px;">' + A.escapeHtml(user.name) + '</h1>' +
+          '<p style="margin:0;">' + A.escapeHtml(user.cargo) + ' · ' + A.escapeHtml(user.email) + '</p></div>' +
+        '</div>' +
+      '</div>' +
+    '</header>' +
+    '<section class="section">' +
+      '<div class="container-wide">' +
+        '<div class="grid" style="grid-template-columns:1fr 1.6fr;gap:32px;align-items:flex-start;">' +
+          '<div class="flex-col gap-16">' +
+            '<div class="card">' +
+              '<h3 style="font-size:15px;">Plano</h3>' +
+              '<div class="flex-between mb-12">' +
+                '<span class="badge ' + (user.plan === 'premium' ? 'badge-warning' : 'badge-brand') + '">' + (user.plan === 'premium' ? '🔒 Premium' : '🔑 Cadastrado') + '</span>' +
+              '</div>' +
+              (user.plan !== 'premium' ? '<a href="premium.html" class="btn btn-primary btn-block btn-sm">Conhecer Premium</a>' : '<p class="small muted mb-0">Todos os conteúdos estão desbloqueados.</p>') +
+            '</div>' +
+            '<div class="card">' +
+              '<h3 style="font-size:15px;">Dados da conta</h3>' +
+              '<div class="field"><label>Nome</label><input type="text" id="pName" value="' + A.escapeHtml(user.name) + '"></div>' +
+              '<div class="field"><label>E-mail</label><input type="email" id="pEmail" value="' + A.escapeHtml(user.email) + '"></div>' +
+              '<div class="field"><label>Cargo</label><select id="pCargo">' +
+                ['Product Owner', 'Product Manager', 'Product Manager Sênior', 'Head of Product', 'Outro'].map(function (o) {
+                  return '<option' + (o === user.cargo ? ' selected' : '') + '>' + o + '</option>';
+                }).join('') + '</select></div>' +
+              '<div class="field"><label>Nível profissional</label><select id="pLevel">' +
+                Object.keys(D.LEVELS).map(function (k) { return '<option value="' + k + '"' + (k === user.level ? ' selected' : '') + '>' + D.LEVELS[k].label + '</option>'; }).join('') +
+              '</select></div>' +
+              '<button class="btn btn-primary btn-block" id="saveBtn">Salvar alterações</button>' +
+            '</div>' +
+            '<button class="btn btn-secondary btn-block" id="logoutBtn">Sair da conta</button>' +
+          '</div>' +
+          '<div class="flex-col gap-24">' +
+            '<div class="grid grid-4">' +
+              '<div class="stat-tile"><div class="stat-icon" style="background:var(--brand-100);color:var(--brand-700);">📘</div><b>' + stats.contentsCompleted + '</b><span>Concluídos</span></div>' +
+              '<div class="stat-tile"><div class="stat-icon" style="background:var(--success-100);color:var(--success-700);">⏱</div><b>' + stats.hoursStudied + 'h</b><span>Estudo</span></div>' +
+              '<div class="stat-tile"><div class="stat-icon" style="background:var(--lvl-senior-bg);color:#7e22ce;">🧠</div><b>' + stats.frameworksStudied + '</b><span>Frameworks</span></div>' +
+              '<div class="stat-tile"><div class="stat-icon" style="background:var(--warning-100);color:var(--warning-700);">🏁</div><b>' + stats.tracksCompleted + '</b><span>Trilhas</span></div>' +
+            '</div>' +
+            '<div class="card">' +
+              '<h3 style="margin-bottom:16px;">Conteúdos concluídos</h3>' +
+              '<div class="flex-col gap-12" id="completedList"></div>' +
+            '</div>' +
+            '<div class="card">' +
+              '<h3 style="margin-bottom:16px;">Frameworks estudados</h3>' +
+              '<div class="pill-list" id="fwList"></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</section>';
+
+  document.getElementById('completedList').innerHTML = completedItems.length ? completedItems.map(function (c) {
+    return '<a href="conteudo.html?slug=' + c.slug + '" class="flex-between" style="text-decoration:none;padding:10px 0;border-bottom:1px dashed var(--ink-200);">' +
+      '<span style="color:var(--ink-800);font-weight:600;font-size:14px;">' + A.escapeHtml(c.title) + '</span>' + A.levelBadge(c.level) + '</a>';
+  }).join('') : '<p class="small muted mb-0">Você ainda não concluiu nenhum conteúdo. <a class="link" href="conteudos.html">Explorar biblioteca</a></p>';
+
+  document.getElementById('fwList').innerHTML = fwItems.length ? fwItems.map(function (f) {
+    return '<a href="framework.html?slug=' + f.slug + '" class="tag">' + f.icon + ' ' + f.name + '</a>';
+  }).join('') : '<p class="small muted mb-0">Nenhum framework marcado como estudado ainda.</p>';
+
+  document.getElementById('saveBtn').addEventListener('click', function () {
+    var updated = Object.assign({}, user, {
+      name: document.getElementById('pName').value || user.name,
+      email: document.getElementById('pEmail').value || user.email,
+      cargo: document.getElementById('pCargo').value,
+      level: document.getElementById('pLevel').value
+    });
+    localStorage.setItem('ph_user', JSON.stringify(updated));
+    A.toast('Perfil atualizado com sucesso!');
+    setTimeout(function () { window.location.reload(); }, 500);
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', function () {
+    A.logout();
+    A.toast('Sessão encerrada.');
+    setTimeout(function () { window.location.href = 'index.html'; }, 500);
+  });
+})();
+</script>
+</body>
+</html>

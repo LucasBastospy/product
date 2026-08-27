@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produto na Vida Real — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><a href="carreira.html">Carreira</a><span class="sep">/</span><span class="current">Produto na vida real</span></div>
+    <h1>Produto na vida real</h1>
+    <p>Situações reais do dia a dia de PO/PM — contexto, perguntas certas, como decidir e um exemplo de resposta.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="filters-bar">
+      <div class="filter-chips" id="levelFilters"></div>
+    </div>
+    <div class="grid grid-3" id="situationGrid" style="gap:20px;"></div>
+  </div>
+</section>
+
+<div id="modalHost"></div>
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('carreira');
+
+  var levels = ['todos'].concat(Array.from(new Set(D.SITUATIONS.map(function (s) { return s.level; }))));
+  var current = 'todos';
+
+  function renderChips() {
+    document.getElementById('levelFilters').innerHTML = levels.map(function (k) {
+      var label = k === 'todos' ? 'Todos os níveis' : D.LEVELS[k].label;
+      return '<button class="chip' + (k === current ? ' active' : '') + '" data-level="' + k + '">' + label + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-level]').forEach(function (btn) {
+      btn.addEventListener('click', function () { current = btn.getAttribute('data-level'); renderChips(); renderGrid(); });
+    });
+  }
+
+  function renderGrid() {
+    var list = D.SITUATIONS.filter(function (s) { return current === 'todos' || s.level === current; });
+    document.getElementById('situationGrid').innerHTML = list.map(A.situationCard).join('');
+    document.querySelectorAll('[data-situation]').forEach(function (card) {
+      card.addEventListener('click', function () { openSituation(card.getAttribute('data-situation')); });
+    });
+  }
+
+  function block(title, text) {
+    return '<h3>' + title + '</h3><p>' + A.escapeHtml(text) + '</p>';
+  }
+  function blockList(title, items) {
+    return '<h3>' + title + '</h3><ul>' + items.map(function (i) { return '<li>' + A.escapeHtml(i) + '</li>'; }).join('') + '</ul>';
+  }
+
+  function openSituation(slug) {
+    var s = D.SITUATIONS.filter(function (x) { return x.slug === slug; })[0];
+    if (!s) return;
+    var host = document.getElementById('modalHost');
+    host.innerHTML =
+      '<div class="modal-backdrop open" id="sitModal">' +
+        '<div class="modal modal-wide">' +
+          '<div class="modal-head">' +
+            '<div><div style="font-size:30px;margin-bottom:8px;">' + s.icon + '</div>' + A.levelBadge(s.level) + '<h2 style="margin-top:10px;">' + A.escapeHtml(s.title) + '</h2></div>' +
+            '<button class="modal-close" data-close>&times;</button>' +
+          '</div>' +
+          '<div class="modal-body content-body">' +
+            '<div class="callout"><strong>Cenário:</strong> ' + A.escapeHtml(s.scenario) + '</div>' +
+            block('Contexto', s.context) +
+            (s.problem ? block('O problema', s.problem) : '') +
+            blockList('O que o PO/PM deve perguntar', s.questions) +
+            block('Como avaliar prioridade', s.howToEvaluate) +
+            block('Como conversar com stakeholders/time', s.howToTalk) +
+            block('Como decidir', s.howToDecide) +
+            '<h3>Exemplo de resposta</h3><div class="callout callout-good">' + A.escapeHtml(s.exampleAnswer) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('sitModal').addEventListener('click', function (e) {
+      if (e.target.id === 'sitModal' || e.target.closest('[data-close]')) host.innerHTML = '';
+    });
+  }
+
+  renderChips();
+  renderGrid();
+
+  var preset = A.qs('situation');
+  if (preset) openSituation(preset);
+})();
+</script>
+</body>
+</html>

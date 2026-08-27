@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frameworks — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="page-header">
+  <div class="container-wide">
+    <div class="breadcrumbs"><a href="index.html">Início</a><span class="sep">/</span><span class="current">Frameworks</span></div>
+    <h1>Biblioteca de frameworks</h1>
+    <p>O que é, quando usar, como aplicar, exemplo prático, vantagens, limitações e template — para cada framework.</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container-wide">
+    <div class="filters-bar">
+      <div class="filter-chips" id="catFilters"></div>
+    </div>
+    <div class="grid grid-4" id="frameworkGrid" style="gap:20px;"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('frameworks');
+
+  var cats = ['Todos'].concat(Array.from(new Set(D.FRAMEWORKS.map(function (f) { return f.category; }))));
+  var current = 'Todos';
+
+  function renderChips() {
+    document.getElementById('catFilters').innerHTML = cats.map(function (c) {
+      return '<button class="chip' + (c === current ? ' active' : '') + '" data-cat="' + c + '">' + c + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-cat]').forEach(function (btn) {
+      btn.addEventListener('click', function () { current = btn.getAttribute('data-cat'); renderChips(); renderGrid(); });
+    });
+  }
+  function renderGrid() {
+    var list = D.FRAMEWORKS.filter(function (f) { return current === 'Todos' || f.category === current; });
+    document.getElementById('frameworkGrid').innerHTML = list.map(A.frameworkCard).join('');
+  }
+  renderChips();
+  renderGrid();
+})();
+</script>
+</body>
+</html>

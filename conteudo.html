@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conteúdo — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+<div id="pageRoot"></div>
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp, D = window.PH;
+  A.mountLayout('conteudos');
+  var root = document.getElementById('pageRoot');
+
+  var slug = A.qs('slug');
+  var c = D.CONTENTS.filter(function (x) { return x.slug === slug; })[0];
+
+  if (!c) {
+    root.innerHTML = '<div class="container-wide section"><div class="empty-state"><div class="icon">🔍</div>Conteúdo não encontrado. <a class="link" href="conteudos.html">Voltar para a biblioteca</a></div></div>';
+    return;
+  }
+
+  function findTrackAndModule(slug) {
+    for (var i = 0; i < D.TRACKS.length; i++) {
+      var t = D.TRACKS[i];
+      for (var j = 0; j < t.modules.length; j++) {
+        if (t.modules[j].contentSlug === slug) return { track: t, index: j };
+      }
+    }
+    return null;
+  }
+  var pos = findTrackAndModule(c.slug);
+  var nextContent = null;
+  if (pos && pos.index < pos.track.modules.length - 1) {
+    var nextSlug = pos.track.modules[pos.index + 1].contentSlug;
+    nextContent = D.CONTENTS.filter(function (x) { return x.slug === nextSlug; })[0];
+  }
+  if (!nextContent) {
+    var idx = D.CONTENTS.indexOf(c);
+    nextContent = D.CONTENTS[(idx + 1) % D.CONTENTS.length];
+  }
+
+  var acc = A.checkAccess(c.access);
+
+  function section(title, inner) { return inner ? ('<h2>' + title + '</h2>' + inner) : ''; }
+  function ul(items) { return '<ul>' + items.map(function (i) { return '<li>' + A.escapeHtml(i) + '</li>'; }).join('') + '</ul>'; }
+  function ol(items) { return '<ul>' + items.map(function (i, idx) { return '<li><strong>' + (idx + 1) + '.</strong> ' + A.escapeHtml(i) + '</li>'; }).join('') + '</ul>'; }
+  function checklistHtml(items) {
+    return items.map(function (i) { return '<div class="checklist-item"><span class="box"></span>' + A.escapeHtml(i) + '</div>'; }).join('');
+  }
+  function pre(text) { return '<div class="callout" style="white-space:pre-wrap;font-family:monospace;font-size:13.5px;">' + A.escapeHtml(text) + '</div>'; }
+
+  function buildBody() {
+    var b = c.flagshipBody;
+    if (b) {
+      return (
+        section('O que você vai aprender', ul(b.learn)) +
+        section('O conceito', '<p>' + A.escapeHtml(b.concept) + '</p>') +
+        section('Quando utilizar', '<p>' + A.escapeHtml(b.whenToUse) + '</p>') +
+        section('Como fazer', ol(b.howTo)) +
+        section('Exemplo ruim', '<div class="callout callout-bad">' + A.escapeHtml(b.badExample).replace(/\n/g, '<br>') + '</div>') +
+        section('Exemplo bom', '<div class="callout callout-good">' + A.escapeHtml(b.goodExample).replace(/\n/g, '<br>') + '</div>') +
+        section('Erros comuns', ul(b.mistakes)) +
+        section('Checklist', checklistHtml(b.checklist)) +
+        section('Template', pre(b.template)) +
+        section('Desafio prático', '<div class="callout">🎯 ' + A.escapeHtml(b.challenge) + '</div>')
+      );
+    }
+    var out = '';
+    out += section('O que você vai aprender', c.keyPoints ? ul(c.keyPoints) : '');
+    out += section('O conceito', '<p>' + A.escapeHtml(c.summary) + '</p>');
+    if (c.whenToUse) out += section('Quando utilizar', '<p>' + A.escapeHtml(c.whenToUse) + '</p>');
+    if (c.howTo) out += section('Como fazer', ol(c.howTo));
+    if (c.example) out += section('Exemplo prático', '<div class="callout">' + A.escapeHtml(c.example) + '</div>');
+    if (c.commonMistakes) out += section('Erros comuns', ul(c.commonMistakes));
+    if (c.checklist) out += section('Checklist', checklistHtml(c.checklist));
+    out += section('Desafio prático', '<div class="callout">🎯 Aplique este conteúdo em uma situação real do seu produto essa semana e compartilhe o resultado com seu time.</div>');
+    return out;
+  }
+
+  var lockedNotice = !acc.allowed ? (
+    '<div class="banner ' + (acc.reason === 'premium' ? 'banner-warning' : 'banner-brand') + '" style="margin-bottom:28px;">' +
+      '<div><h3 style="' + (acc.reason === 'premium' ? '' : 'color:#fff;') + 'margin-bottom:6px;">' + (acc.reason === 'premium' ? '🔒 Conteúdo Premium' : '🔑 Este conteúdo é gratuito, mas requer cadastro') + '</h3>' +
+      '<p style="' + (acc.reason === 'premium' ? '' : 'color:var(--brand-100);') + 'margin:0;">' + (acc.reason === 'premium' ? 'Crie sua conta e faça upgrade para desbloquear este conteúdo Premium.' : 'Crie sua conta gratuitamente para ler este conteúdo na íntegra.') + '</p></div>' +
+      (acc.reason === 'premium' ? '<a href="premium.html" class="btn btn-dark">Desbloquear conteúdo</a>' : '<a href="cadastro.html?next=conteudo.html%3Fslug%3D' + c.slug + '" class="btn btn-dark">Criar conta grátis</a>') +
+    '</div>'
+  ) : '';
+
+  root.innerHTML =
+    '<header class="page-header">' +
+      '<div class="container-wide">' +
+        A.breadcrumbs([{ label: 'Início', href: 'index.html' }, { label: 'Conteúdos', href: 'conteudos.html' }, { label: c.title }]) +
+        '<div class="flex gap-8 mb-12">' + A.levelBadge(c.level) + '<span class="badge badge-outline">' + A.escapeHtml(c.category) + '</span>' + A.typeBadge(c.type) + A.accessBadge(c.access) + '</div>' +
+        '<h1>' + A.escapeHtml(c.title) + '</h1>' +
+        '<p>⏱ Tempo de leitura: ' + c.readTime + ' minutos</p>' +
+      '</div>' +
+    '</header>' +
+    '<section class="section">' +
+      '<div class="container-wide">' +
+        '<div class="grid" style="grid-template-columns:2.2fr 1fr;gap:40px;align-items:flex-start;">' +
+          '<div>' +
+            lockedNotice +
+            '<div class="content-body ' + (!acc.allowed ? 'mask-locked' : '') + '" id="bodyWrap" style="' + (!acc.allowed ? 'filter:blur(3px);opacity:.5;pointer-events:none;user-select:none;' : '') + '">' + buildBody() + '</div>' +
+            (acc.allowed ? (
+              '<div class="flex-between wrap mt-40" style="border-top:1px solid var(--ink-200);padding-top:24px;">' +
+                '<button class="btn btn-primary" id="completeBtn"></button>' +
+                '<a href="conteudo.html?slug=' + nextContent.slug + '" class="btn btn-secondary">Próximo conteúdo →</a>' +
+              '</div>'
+            ) : '') +
+          '</div>' +
+          '<div class="sidebar-card">' +
+            '<div class="card mb-16">' +
+              '<h3 style="font-size:15px;">Neste conteúdo</h3>' +
+              '<div class="kv-list">' +
+                '<div class="kv"><span>Nível</span><span>' + D.LEVELS[c.level].label + '</span></div>' +
+                '<div class="kv"><span>Categoria</span><span>' + A.escapeHtml(c.category) + '</span></div>' +
+                '<div class="kv"><span>Tema</span><span>' + A.escapeHtml(c.theme || '—') + '</span></div>' +
+                '<div class="kv"><span>Leitura</span><span>' + c.readTime + ' min</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="card">' +
+              '<h3 style="font-size:15px;">Próximo conteúdo</h3>' +
+              '<p class="small">' + A.escapeHtml(nextContent.title) + '</p>' +
+              '<a href="conteudo.html?slug=' + nextContent.slug + '" class="btn btn-secondary btn-block btn-sm">Ver conteúdo</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</section>';
+
+  if (acc.allowed) {
+    var btn = document.getElementById('completeBtn');
+    function paintBtn() {
+      var done = A.isCompleted(c.slug);
+      btn.textContent = done ? '✓ Concluído' : 'Marcar como concluído';
+      btn.className = done ? 'btn btn-secondary' : 'btn btn-primary';
+    }
+    paintBtn();
+    btn.addEventListener('click', function () {
+      var done = A.toggleCompleted(c.slug);
+      A.toast(done ? 'Conteúdo marcado como concluído!' : 'Conteúdo marcado como não concluído.');
+      paintBtn();
+    });
+  } else {
+    setTimeout(function () {
+      if (acc.reason === 'premium') A.premiumGateModal('Este conteúdo faz parte da trilha ' + D.LEVELS[c.level].label + ', disponível na área Premium.');
+      else A.signupGateModal('Esse conteúdo é gratuito, mas você precisa criar sua conta para acessar.', 'conteudo.html?slug=' + c.slug);
+    }, 400);
+  }
+})();
+</script>
+</body>
+</html>

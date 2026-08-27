@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium — ProductHub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<header class="hero" style="padding:80px 0 70px;">
+  <div class="hero-grid"></div>
+  <div class="container-wide text-center" style="position:relative;z-index:2;">
+    <div class="eyebrow" style="justify-content:center;color:#fcd34d;"><span class="dot" style="background:#fcd34d;"></span>ProductHub Premium</div>
+    <h1 style="font-size:42px;max-width:680px;margin:0 auto 18px;">Conteúdo para acelerar sua evolução.</h1>
+    <p class="lead" style="max-width:600px;margin:0 auto 34px;">Trilhas avançadas, conteúdos de Sênior e Liderança, cases aprofundados e materiais exclusivos para quem quer chegar mais rápido no próximo nível.</p>
+    <div class="hero-cta" style="justify-content:center;">
+      <button class="btn btn-primary btn-lg" id="upgradeBtn">Ativar Premium (demonstração)</button>
+      <a href="#beneficios" class="btn btn-outline-light btn-lg">Ver benefícios</a>
+    </div>
+  </div>
+</header>
+
+<section class="section" id="beneficios">
+  <div class="container-wide">
+    <div class="section-head center">
+      <div class="eyebrow" style="justify-content:center;"><span class="dot"></span>O que você desbloqueia</div>
+      <h2>Feito para quem quer virar Sênior e Liderança</h2>
+    </div>
+    <div class="grid grid-4" id="benefitsGrid"></div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--white);border-top:1px solid var(--ink-200);border-bottom:1px solid var(--ink-200);">
+  <div class="container-wide">
+    <div class="grid grid-2" style="gap:32px;align-items:center;">
+      <div>
+        <div class="eyebrow"><span class="dot"></span>Comparativo</div>
+        <h2 style="margin-bottom:20px;">Gratuito x Premium</h2>
+        <div class="card">
+          <div class="kv-list">
+            <div class="kv"><span>Conteúdos Júnior</span><span>✅ Todos</span></div>
+            <div class="kv"><span>Conteúdos Pleno</span><span>✅ Com cadastro</span></div>
+            <div class="kv"><span>Conteúdos Sênior</span><span>🔒 Premium</span></div>
+            <div class="kv"><span>Trilha de Liderança</span><span>🔒 Premium</span></div>
+            <div class="kv"><span>Templates avançados</span><span>🔒 Premium</span></div>
+            <div class="kv"><span>Cases aprofundados</span><span>🔒 Premium</span></div>
+            <div class="kv"><span>Simulações e preparação para entrevistas</span><span>🔒 Premium</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="background:var(--ink-950);border:none;">
+        <span class="badge badge-warning mb-16">Em breve</span>
+        <h3 style="color:#fff;">Mentorias com líderes de Produto</h3>
+        <p style="color:var(--ink-300);">Sessões ao vivo com Heads e CPOs de empresas parceiras — programa em construção.</p>
+        <span class="badge" style="background:rgba(255,255,255,.1);color:#fff;">Notifique-me quando lançar</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section text-center">
+  <div class="container">
+    <h2>Pronto para acelerar sua evolução?</h2>
+    <p class="mb-24">Ative o modo de demonstração Premium e explore todos os conteúdos bloqueados da plataforma.</p>
+    <button class="btn btn-primary btn-lg" id="upgradeBtn2">Ativar Premium (demonstração)</button>
+    <p class="small muted mt-16">Nenhum pagamento é processado — este é um protótipo de produto.</p>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  var A = window.PHApp;
+  A.mountLayout('premium');
+
+  var benefits = [
+    ['🧭', 'Trilhas avançadas', 'Conteúdos completos de Sênior e Liderança de Produto.'],
+    ['📚', 'Cases aprofundados', 'Jornadas completas com dados e decisões reais de negócio.'],
+    ['🧩', 'Templates exclusivos', 'Modelos prontos de Business Case, Roadmap e OKRs.'],
+    ['🎓', 'Workshops', 'Sessões práticas guiadas sobre estratégia e liderança.'],
+    ['🗂️', 'Materiais exclusivos', 'Slides, planilhas e frameworks aplicados prontos para usar.'],
+    ['🧪', 'Simulações', 'Situações reais de tomada de decisão em ambiente seguro.'],
+    ['💼', 'Preparação para entrevistas', 'Perguntas reais de processos seletivos de Produto.'],
+    ['🤝', 'Mentorias (em breve)', 'Sessões com líderes de Produto de empresas parceiras.']
+  ];
+  document.getElementById('benefitsGrid').innerHTML = benefits.map(function (b) {
+    return '<div class="card"><div class="card-icon">' + b[0] + '</div><h3 style="font-size:16px;margin-bottom:8px;">' + b[1] + '</h3><p class="small mb-0">' + b[2] + '</p></div>';
+  }).join('');
+
+  function upgrade() {
+    var user = A.getUser();
+    if (!user) {
+      A.signupGateModal('Crie sua conta gratuitamente e depois ative o modo de demonstração Premium.', 'premium.html');
+      return;
+    }
+    A.upgradeToPremium();
+    A.toast('Premium ativado! Todos os conteúdos foram desbloqueados 🎉');
+    setTimeout(function () { window.location.href = 'dashboard.html'; }, 700);
+  }
+  document.getElementById('upgradeBtn').addEventListener('click', upgrade);
+  document.getElementById('upgradeBtn2').addEventListener('click', upgrade);
+})();
+</script>
+</body>
+</html>
