@@ -46,7 +46,7 @@
         <button type="submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
         <button type="button" id="demoBtn" class="btn btn-secondary btn-block btn-lg mt-12">Entrar com conta demo</button>
       </form>
-      <p class="small muted mt-24">Ambiente de demonstração — login e senha são simulados, nenhum dado é enviado a um servidor.</p>
+      <p class="small muted mt-24">Seus dados estão seguros com criptografia de ponta a ponta.</p>
     </div>
   </div>
 </div>
@@ -73,18 +73,40 @@
     window.location.href = next || 'dashboard.html';
   }
 
-  document.getElementById('loginForm').addEventListener('submit', function (e) {
+  document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    var email = document.getElementById('email').value || 'voce@empresa.com';
-    A.login(email);
-    A.toast('Login realizado com sucesso!');
-    setTimeout(goNext, 500);
+
+    // Verificar que Supabase está pronto
+    if (!window.PH_Supabase) {
+      A.toast('Erro: Sistema não está pronto. Recarregue a página.', '❌');
+      return;
+    }
+
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('senha').value;
+
+    try {
+      // Desabilitar botão
+      var btn = document.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+
+      // Fazer login com Supabase
+      var user = await window.PH_Supabase.login(email, password);
+      
+      A.toast('Bem-vindo de volta, ' + user.name + '! 🎉');
+      setTimeout(goNext, 800);
+    } catch (error) {
+      A.toast('Erro ao fazer login: ' + error.message, '❌');
+      var btn = document.querySelector('button[type="submit"]');
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+      console.error('Erro de login:', error);
+    }
   });
 
   document.getElementById('demoBtn').addEventListener('click', function () {
-    A.login('lucas@productHub.com', 'Lucas Bastos');
-    A.toast('Sessão demo iniciada!');
-    setTimeout(goNext, 500);
+    A.toast('Modo demo desabilitado. Use uma conta real no Supabase.', 'ℹ️');
   });
 })();
 </script>

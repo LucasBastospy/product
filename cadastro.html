@@ -67,7 +67,7 @@
         <label class="checkbox-row mb-24"><input type="checkbox" checked> Concordo com os Termos de Uso e Política de Privacidade</label>
         <button type="submit" class="btn btn-primary btn-block btn-lg">Criar conta grátis</button>
       </form>
-      <p class="small muted mt-24">Ambiente de demonstração — nenhum dado real é armazenado em servidor.</p>
+      <p class="small muted mt-24">Seus dados serão salvos com segurança. Você pode acessar de qualquer dispositivo.</p>
     </div>
   </div>
 </div>
@@ -99,19 +99,43 @@
     document.getElementById('nivel').value = lvl;
   }
 
-  document.getElementById('signupForm').addEventListener('submit', function (e) {
+  document.getElementById('signupForm').addEventListener('submit', async function (e) {
     e.preventDefault();
+    
+    // Verificar que Supabase está pronto
+    if (!window.PH_Supabase) {
+      A.toast('Erro: Sistema não está pronto. Recarregue a página.', '❌');
+      return;
+    }
+
     var data = {
       name: document.getElementById('nome').value || 'Usuário ProductHub',
       email: document.getElementById('email').value,
+      password: document.getElementById('senha').value,
       level: document.getElementById('nivel').value,
       cargo: document.getElementById('cargo').value
     };
-    A.signup(data);
-    A.toast('Conta criada com sucesso! Bem-vindo(a) 🎉');
-    setTimeout(function () {
-      window.location.href = next || 'escolha-nivel.html';
-    }, 600);
+
+    try {
+      // Desabilitar botão
+      var btn = document.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Criando conta...';
+
+      // Chamar Supabase para criar conta
+      var user = await window.PH_Supabase.signup(data);
+      
+      A.toast('Conta criada com sucesso! 🎉 Bem-vindo(a)');
+      setTimeout(function () {
+        window.location.href = next || 'escolha-nivel.html';
+      }, 800);
+    } catch (error) {
+      A.toast('Erro ao criar conta: ' + error.message, '❌');
+      var btn = document.querySelector('button[type="submit"]');
+      btn.disabled = false;
+      btn.textContent = 'Criar conta grátis';
+      console.error('Erro de signup:', error);
+    }
   });
 })();
 </script>
