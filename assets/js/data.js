@@ -564,6 +564,49 @@
       howTo: ["Liste as competências esperadas do próximo nível", "Avalie honestamente onde você está em cada uma", "Defina 2-3 ações concretas para os próximos 6 meses", "Agende check-ins periódicos com seu gestor sobre o progresso"],
       commonMistakes: ["Plano de carreira vago demais para ser acionável", "Não revisitar o plano depois de criado"],
       checklist: ["Competências do próximo nível estão mapeadas", "Tenho 2-3 ações concretas para os próximos 6 meses"]
+    }),
+    ct({
+      slug: "transicao-para-produto-sem-experiencia", title: "Como migrar para Produto sem nunca ter sido PO/PM",
+      level: "junior", category: "Carreira", theme: "Transição de carreira", type: "template",
+      access: ACCESS.FREE, readTime: 10, flagship: true,
+      summary: "Um passo a passo para quem vem de suporte, dev, UX, marketing, vendas ou dados e quer a primeira vaga em Produto — mesmo sem o cargo no currículo.",
+      keyPoints: ["Sua experiência atual já tem sinais de Produto — o trabalho é traduzir, não inventar", "Um case de produto construído sozinho vale mais que um curso concluído", "Vagas júnior filtram por evidência de raciocínio, não por título anterior", "Rede e indicação abrem mais portas do que candidatura fria nesse nível"],
+      flagshipBody: {
+        learn: [
+          "Como identificar, na sua experiência atual, o que já é 'trabalho de Produto' mesmo sem o título",
+          "Como construir um case de produto do zero, sem ter acesso a um time de verdade, para usar como portfólio",
+          "Como estruturar o currículo e o LinkedIn para quem está migrando de área",
+          "Como se posicionar em entrevista quando a pergunta é 'mas você nunca foi PO'"
+        ],
+        concept: "Empresas raramente contratam PO/PM júnior puramente pelo título anterior — elas contratam por evidência de raciocínio de produto: capacidade de entender um problema, priorizar, decidir com dados incompletos e comunicar isso com clareza. Quem vem de suporte já lida com dor real de usuário; quem vem de dev já entende viabilidade técnica; quem vem de UX já pensa em usuário e fluxo; quem vem de vendas/CS já ouve objeção e necessidade o dia inteiro; quem vem de dados já mede impacto. A transição não é 'começar do zero', é nomear e organizar o que você já faz sob a lente de Produto.",
+        whenToUse: "Quando você quer a primeira vaga de PO/PM e sente que 'não tem experiência' — especialmente nas primeiras candidaturas e entrevistas.",
+        howTo: [
+          "Liste as últimas 10-15 decisões ou entregas do seu trabalho atual e reescreva cada uma como 'problema → decisão → resultado', não como tarefa executada",
+          "Escolha um produto que você usa ou conhece bem (mesmo de fora) e construa um case completo sozinho: problema, hipótese, priorização, solução proposta, métrica de sucesso — sem precisar de acesso interno à empresa",
+          "Documente esse case em 1-2 páginas ou uma apresentação curta, usando a estrutura de case da seção Cases desta plataforma como modelo",
+          "Reescreva o currículo trocando verbos de execução ('atendi', 'testei', 'configurei') por verbos de decisão e impacto ('identifiquei', 'priorizei', 'reduzi', 'aumentei')",
+          "Publique o case no LinkedIn ou portfólio pessoal e use-o ativamente como resposta às perguntas de entrevista sobre experiência prévia",
+          "Priorize vagas júnior e processos com etapa de case sobre processos que exigem anos de experiência formal — é onde o raciocínio pesa mais que o título"
+        ],
+        goodExample: "Um analista de suporte técnico nota que 40% dos chamados são sobre a mesma dúvida de configuração. Ele levanta os dados, propõe uma mudança simples de UX no onboarding para resolver a causa raiz (não só treinar o suporte a responder mais rápido), estima o impacto em volume de chamados evitados e leva a proposta ao time de produto. Esse relato vira, com pouco esforço, uma história de 'identifiquei uma oportunidade a partir de dado de usuário e propus uma solução priorizada por impacto' — pronta para currículo e entrevista.",
+        badExample: "O mesmo analista escreve no currículo apenas 'Atendimento a clientes via chat e telefone, resolução de chamados dentro do SLA'. A frase é verdadeira, mas não mostra nenhum sinal de raciocínio de produto — um recrutador de PO não consegue enxergar potencial ali, mesmo que ele exista na prática.",
+        mistakes: [
+          "Esperar 'ter experiência' antes de começar a se candidatar — a experiência de raciocínio pode ser construída antes do primeiro cargo",
+          "Fazer vários cursos/certificações sem nunca produzir um case concreto para mostrar",
+          "Descrever o trabalho atual só como lista de tarefas, escondendo as decisões que já são tomadas nele",
+          "Se candidatar só a vagas plenas/seniores 'porque já tenho alguma experiência de mercado' e ignorar as vagas júnior onde a concorrência por título é menor",
+          "Não usar a rede: pedir uma conversa de 20 minutos com um PO já atuante vale mais que 10 candidaturas frias"
+        ],
+        checklist: [
+          "Tenho pelo menos 1 case de produto completo e documentado, mesmo que autoral",
+          "Meu currículo usa verbos de decisão/impacto, não só de execução",
+          "Consigo listar 3 situações do meu trabalho atual que mostram raciocínio de produto",
+          "Tenho uma resposta pronta para 'por que você quer migrar para Produto?'",
+          "Já conversei com pelo menos 1 pessoa que atua em Produto sobre esse processo"
+        ],
+        template: "Case de transição — rascunho\n\nÁrea de origem: ___\nProblema que percebi (com dado ou evidência): ___\nPor que isso importa para o negócio/usuário: ___\nO que eu propus ou faria: ___\nComo eu priorizaria isso frente a outras demandas: ___\nComo eu mediria se deu certo: ___\nO que essa experiência mostra sobre como eu penso produto: ___",
+        challenge: "Escolha uma situação real do seu trabalho atual (ou de um produto que você usa) e escreva o case de transição usando o template acima. Peça feedback a uma pessoa que já atua como PO/PM antes de colocar no currículo ou LinkedIn."
+      }
     })
   ];
 
