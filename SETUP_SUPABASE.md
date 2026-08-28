@@ -53,6 +53,18 @@ Este guia descreve como migrar o ProductHub do localStorage para Supabase, remov
 
 No Supabase Dashboard, abra **SQL Editor** e execute este script:
 
+⚠️ **Se você já executou o script anterior**, primeiro **remova as policies antigas**:
+
+```sql
+-- Remover policies antigas (execute isso primeiro se já tinha criado)
+drop policy if exists "Users can read own data" on public.users;
+drop policy if exists "Users can update own data" on public.users;
+drop policy if exists "Users can read own progress" on public.user_progress;
+drop policy if exists "Users can read own frameworks" on public.user_frameworks;
+```
+
+Agora execute o script completo com as **policies corrigidas**:
+
 ```sql
 -- Tabela de usuários (estende auth.users)
 create table public.users (
@@ -90,17 +102,35 @@ alter table public.users enable row level security;
 alter table public.user_progress enable row level security;
 alter table public.user_frameworks enable row level security;
 
+-- Policies para tabela users
+create policy "Users can insert their own data" on public.users
+  for insert with check (auth.uid() = id);
+
 create policy "Users can read own data" on public.users
   for select using (auth.uid() = id);
 
 create policy "Users can update own data" on public.users
   for update using (auth.uid() = id);
 
+-- Policies para tabela user_progress
+create policy "Users can insert own progress" on public.user_progress
+  for insert with check (auth.uid() = user_id);
+
 create policy "Users can read own progress" on public.user_progress
-  for all using (auth.uid() = user_id);
+  for select using (auth.uid() = user_id);
+
+create policy "Users can delete own progress" on public.user_progress
+  for delete using (auth.uid() = user_id);
+
+-- Policies para tabela user_frameworks
+create policy "Users can insert own frameworks" on public.user_frameworks
+  for insert with check (auth.uid() = user_id);
 
 create policy "Users can read own frameworks" on public.user_frameworks
-  for all using (auth.uid() = user_id);
+  for select using (auth.uid() = user_id);
+
+create policy "Users can delete own frameworks" on public.user_frameworks
+  for delete using (auth.uid() = user_id);
 ```
 
 ---
@@ -162,16 +192,32 @@ No `index.html` (e todas as páginas que usam app.js), adicione ANTES de app.js:
 
 ## 🆘 Troubleshooting
 
+**"Conta criada com sucesso" mas dados não aparecem no banco**
+- Isso significa que as RLS policies estão bloqueando a inserção
+- **Solução**: Execute o script de drop policies e recrie com as policies atualizadas
+- Após fazer isso, tente criar conta novamente
+- Verifique em Supabase > **Database > Policies** e confirme que existem policies de INSERT
+
 **Erro: "Cannot read property 'auth' of undefined"**
 - Verificar se supabase.js está carregado DEPOIS de supabase-config.js
+- Abrir DevTools > Console e procurar por erros
 
-**Dados não salvam**
+**Dados não salvam em user_progress ou user_frameworks**
 - Verificar RLS policies em Database > Policies
-- Abrir DevTools > Console para ver erros
+- Abrir DevTools > Console para ver erros específicos
+- Confirmar que existem policies de INSERT para essas tabelas
 
 **Login não funciona**
-- Verificar se Email Auth está ativado
+- Verificar se Email Auth está ativado em **Authentication > Providers**
 - Confirmar credenciais em supabase-config.js
+- Verificar se o email foi confirmado (Supabase envia email de confirmation)
+
+**Como verificar se as policies estão corretas:**
+1. Abra Supabase Dashboard
+2. Vá em **Database > Policies**
+3. Selecione tabela **users**
+4. Confirme que existem 3 policies: INSERT, SELECT, UPDATE
+5. Repita para tabelas **user_progress** e **user_frameworks**
 
 ---
 

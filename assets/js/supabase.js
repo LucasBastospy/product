@@ -18,6 +18,35 @@
   var supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   global.supabaseClient = supabaseClient;
 
+  /* ======================== Local cache mirror ========================
+     app.js (usado em quase todas as páginas) lê/escreve de forma síncrona
+     nessas chaves do localStorage. Como as páginas nunca foram convertidas
+     para chamar o Supabase diretamente, espelhamos aqui o estado vindo do
+     banco para essas mesmas chaves, para que o resto do site continue
+     funcionando sem reescrever cada página para async. */
+  var LS = {
+    USER: "ph_user",
+    COMPLETED: "ph_completed_content",
+    STUDIED_FW: "ph_studied_frameworks",
+    LEVEL_GOAL: "ph_level_goal",
+    SEEDED: "ph_seeded"
+  };
+
+  async function mirrorToLocalCache() {
+    try {
+      if (!currentUser) { localStorage.removeItem(LS.USER); return; }
+      localStorage.setItem(LS.USER, JSON.stringify(currentUser));
+      localStorage.setItem(LS.LEVEL_GOAL, JSON.stringify(currentUser.level_goal || "pleno"));
+      localStorage.setItem(LS.SEEDED, JSON.stringify(true));
+      var completed = await getCompleted();
+      localStorage.setItem(LS.COMPLETED, JSON.stringify(completed));
+      var fw = await getStudiedFrameworks();
+      localStorage.setItem(LS.STUDIED_FW, JSON.stringify(fw));
+    } catch (e) {
+      console.error("Erro ao sincronizar cache local:", e.message);
+    }
+  }
+
   /* ======================== Session Management ======================== */
 
   var currentUser = null;
@@ -37,6 +66,7 @@
           currentUser = userData;
         }
       }
+      await mirrorToLocalCache();
       sessionInitialized = true;
       console.log("Sessão Supabase restaurada:", currentUser ? currentUser.email : "não autenticado");
     } catch (e) {
@@ -80,6 +110,7 @@
 
       // 3. Seed progresso inicial
       await seedProgressIfNeeded();
+      await mirrorToLocalCache();
 
       return userRecord;
     } catch (e) {
@@ -105,6 +136,7 @@
         .single();
 
       currentUser = userData;
+      await mirrorToLocalCache();
       return userData;
     } catch (e) {
       console.error("Erro ao fazer login:", e.message);
@@ -116,6 +148,11 @@
     try {
       await supabaseClient.auth.signOut();
       currentUser = null;
+      localStorage.removeItem(LS.USER);
+      localStorage.removeItem(LS.COMPLETED);
+      localStorage.removeItem(LS.STUDIED_FW);
+      localStorage.removeItem(LS.LEVEL_GOAL);
+      localStorage.removeItem(LS.SEEDED);
       console.log("Logout realizado");
     } catch (e) {
       console.error("Erro ao fazer logout:", e.message);
@@ -135,6 +172,7 @@
 
       if (error) throw new Error(error.message);
       currentUser = data;
+      await mirrorToLocalCache();
       return data;
     } catch (e) {
       console.error("Erro ao fazer upgrade:", e.message);
@@ -172,6 +210,7 @@
 
       if (error) throw new Error(error.message);
       currentUser = data;
+      await mirrorToLocalCache();
       return data;
     } catch (e) {
       console.error("Erro ao atualizar nível goal:", e.message);
@@ -233,6 +272,8 @@
           .eq('content_slug', slug);
 
         if (error) throw new Error(error.message);
+        var listAfterRemove = await getCompleted();
+        localStorage.setItem(LS.COMPLETED, JSON.stringify(listAfterRemove));
         return false;
       } else {
         // Adicionar
@@ -244,6 +285,8 @@
           }]);
 
         if (insertError) throw new Error(insertError.message);
+        var listAfterAdd = await getCompleted();
+        localStorage.setItem(LS.COMPLETED, JSON.stringify(listAfterAdd));
         return true;
       }
     } catch (e) {
@@ -289,13 +332,14 @@
     try {
       var { error } = await supabaseClient
         .from('user_frameworks')
-        .insert([{
+        .upsert([{
           user_id: currentUser.id,
           framework_slug: slug
-        }])
-        .on('CONFLICT', 'ignore');
+        }], { onConflict: 'user_id,framework_slug', ignoreDuplicates: true });
 
-      if (error && error.code !== 'PGRST116') throw new Error(error.message);
+      if (error) throw new Error(error.message);
+      var fwAfter = await getStudiedFrameworks();
+      localStorage.setItem(LS.STUDIED_FW, JSON.stringify(fwAfter));
       return true;
     } catch (e) {
       console.error("Erro ao marcar framework:", e.message);
@@ -383,8 +427,7 @@
       if (fwToSeed.length > 0) {
         await supabaseClient
           .from('user_frameworks')
-          .insert(fwToSeed)
-          .on('CONFLICT', 'ignore');
+          .upsert(fwToSeed, { onConflict: 'user_id,framework_slug', ignoreDuplicates: true });
       }
 
       console.log("Progresso inicial criado para novo usuário");
@@ -418,4 +461,13 @@
   };
 
   console.log("✓ Supabase integration loaded");
+
+  // Restaura a sessão automaticamente em toda página (sem isso, currentUser
+  // fica null a cada navegação e as escritas no banco feitas pelo app.js
+  // nunca disparam, mesmo com o usuário autenticado no Supabase Auth).
+  global.PH_SupabaseReady = initSession().then(function () {
+    if (global.PHApp && global.PHApp.refreshHeader) {
+      global.PHApp.refreshHeader();
+    }
+  });
 })(window);

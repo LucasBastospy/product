@@ -84,17 +84,30 @@
     return user;
   }
 
-  function logout() { localStorage.removeItem(LS.USER); }
+  function logout() {
+    localStorage.removeItem(LS.USER);
+    if (global.PH_Supabase && global.PH_Supabase.isLoggedIn()) {
+      global.PH_Supabase.logout().catch(function (e) { console.error(e); });
+    }
+  }
 
   function upgradeToPremium() {
     var u = getUser();
     if (!u) return null;
     u.plan = "premium";
     writeJSON(LS.USER, u);
+    if (global.PH_Supabase && global.PH_Supabase.isLoggedIn()) {
+      global.PH_Supabase.upgradeToPremium().catch(function (e) { console.error(e); });
+    }
     return u;
   }
 
-  function setLevelGoal(level) { writeJSON(LS.LEVEL_GOAL, level); }
+  function setLevelGoal(level) {
+    writeJSON(LS.LEVEL_GOAL, level);
+    if (global.PH_Supabase && global.PH_Supabase.isLoggedIn()) {
+      global.PH_Supabase.setLevelGoal(level).catch(function (e) { console.error(e); });
+    }
+  }
   function getLevelGoal() { return readJSON(LS.LEVEL_GOAL, (getUser() || {}).level || "junior"); }
 
   function getCompleted() { return readJSON(LS.COMPLETED, []); }
@@ -104,6 +117,9 @@
     var i = list.indexOf(slug);
     if (i === -1) list.push(slug); else list.splice(i, 1);
     writeJSON(LS.COMPLETED, list);
+    if (global.PH_Supabase && global.PH_Supabase.isLoggedIn()) {
+      global.PH_Supabase.toggleCompleted(slug).catch(function (e) { console.error(e); });
+    }
     return list.indexOf(slug) !== -1;
   }
 
@@ -131,6 +147,9 @@
   function markFrameworkStudied(slug) {
     var list = readJSON(LS.STUDIED_FW, []);
     if (list.indexOf(slug) === -1) { list.push(slug); writeJSON(LS.STUDIED_FW, list); }
+    if (global.PH_Supabase && global.PH_Supabase.isLoggedIn()) {
+      global.PH_Supabase.markFrameworkStudied(slug).catch(function (e) { console.error(e); });
+    }
   }
 
   /* ------------------------- access gating ------------------------- */
@@ -417,7 +436,11 @@
   }
 
   /* ------------------------- layout bootstrap ------------------------- */
+  var lastActiveKey = null;
+  var searchInitialized = false;
+
   function mountLayout(activeKey) {
+    lastActiveKey = activeKey;
     var header = $("#site-header");
     var footer = $("#site-footer");
     if (header) header.innerHTML = renderNavbar(activeKey);
@@ -430,7 +453,22 @@
         mobileMenu.style.display = mobileMenu.style.display === "none" ? "block" : "none";
       });
     }
-    initSearch();
+    if (!searchInitialized) { initSearch(); searchInitialized = true; }
+  }
+
+  // Re-renderiza só o cabeçalho — usado depois que a sessão Supabase termina
+  // de restaurar de forma assíncrona, caso o cache local estivesse desatualizado.
+  function refreshHeader() {
+    var header = $("#site-header");
+    if (!header) return;
+    header.innerHTML = renderNavbar(lastActiveKey);
+    var mobileBtn = $("#mobileMenuBtn");
+    var mobileMenu = $("#mobileMenu");
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener("click", function () {
+        mobileMenu.style.display = mobileMenu.style.display === "none" ? "block" : "none";
+      });
+    }
   }
 
   /* ------------------------- card templates ------------------------- */
@@ -548,7 +586,7 @@
     checkAccess: checkAccess,
     levelBadge: levelBadge, accessBadge: accessBadge, typeBadge: typeBadge, statusBadge: statusBadge,
     toast: toast, signupGateModal: signupGateModal, premiumGateModal: premiumGateModal,
-    mountLayout: mountLayout, progressBarHtml: progressBarHtml,
+    mountLayout: mountLayout, refreshHeader: refreshHeader, progressBarHtml: progressBarHtml,
     contentCard: contentCard, frameworkCard: frameworkCard, toolCard: toolCard, caseCard: caseCard,
     situationCard: situationCard, techCard: techCard, trackCard: trackCard, breadcrumbs: breadcrumbs
   };

@@ -24,6 +24,12 @@
     if (global.PH_Supabase) {
       await global.PH_Supabase.initSession();
       console.log("ProductHub — Sessão Supabase inicializada");
+      // O cabeçalho pode ter renderizado antes da sessão restaurar (cache
+      // local desatualizado/vazio) — re-renderiza agora que o estado real
+      // do Supabase está disponível.
+      if (global.PHApp && global.PHApp.refreshHeader) {
+        global.PHApp.refreshHeader();
+      }
     }
   });
 
